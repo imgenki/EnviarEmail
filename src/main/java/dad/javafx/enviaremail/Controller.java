@@ -1,6 +1,8 @@
 package dad.javafx.enviaremail;
 
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.net.URL;
 import java.util.ResourceBundle;
 
@@ -23,8 +25,11 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
+import javafx.scene.image.Image;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
+import javafx.stage.Stage;
 
 public class Controller implements Initializable {
 	
@@ -81,8 +86,10 @@ public class Controller implements Initializable {
 		model.getEmail().addTo(destinatarioText.getText());
 		
 		model.getEmail().send();
+		
+		exitoAlert();
 		}catch(Exception ex) {
-			ex.printStackTrace();
+			errorAlert(ex);
 		}
 	}
 	
@@ -109,6 +116,49 @@ public class Controller implements Initializable {
 		FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/View.fxml"));
 		loader.setController(this);
 		loader.load();
+	}
+	private void exitoAlert() {
+		Alert alert=new Alert(AlertType.INFORMATION);
+		alert.setHeaderText("Mensaje enviado con éxito a \""+destinatarioText.getText()+"\".");
+		alert.setTitle("Mensaje enviado");
+		
+		Stage stage = (Stage) alert.getDialogPane().getScene().getWindow();
+		stage.getIcons().add(new Image("/images/email-send-icon-32x32.png"));
+
+		alert.showAndWait();
+
+	}
+	private void errorAlert(Exception ex) {
+		Alert alert=new Alert(AlertType.ERROR);
+		alert.setTitle("Error");
+		alert.setHeaderText("No se pudo enviar el email.");
+		alert.setContentText("Abra \"Mostrar detalles\" para obtener la información completa");
+		
+		Stage stage = (Stage) alert.getDialogPane().getScene().getWindow();
+		stage.getIcons().add(new Image("/images/email-send-icon-32x32.png"));
+
+		StringWriter sw = new StringWriter();
+		PrintWriter pw = new PrintWriter(sw);
+		ex.printStackTrace(pw);
+		String exceptionText=sw.toString();
+		
+		TextArea textArea = new TextArea(exceptionText);
+		textArea.setEditable(false);
+		textArea.setWrapText(true);
+		
+		textArea.setMaxWidth(Double.MAX_VALUE);
+		textArea.setMaxHeight(Double.MAX_VALUE);
+		GridPane.setVgrow(textArea, Priority.ALWAYS);
+		GridPane.setHgrow(textArea, Priority.ALWAYS);
+
+		GridPane expContent = new GridPane();
+		expContent.setMaxWidth(Double.MAX_VALUE);
+		expContent.add(textArea, 0, 0);
+
+		// Set expandable Exception into the dialog pane.
+		alert.getDialogPane().setExpandableContent(expContent);
+
+		alert.showAndWait();
 	}
 
 	@Override
